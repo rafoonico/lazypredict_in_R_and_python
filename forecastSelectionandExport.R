@@ -250,13 +250,6 @@ forecastMaking(rpois(100,10),as.Date("1994-11-08"),6)
 forecastMaking(rpois(10,10),as.Date("1994-11-08"),6,forecastSelection(rpois(10,15),as.Date("1994-11-08")))
 
 
-# 3) Salvando as funções criadas ------------------------------------------
-
-setwd("//vcn.ds.volvo.net/parts-cta/PartsPROJ02/004998/DIP/19. Machine Learning/Dealer Spot Demand")
-saveRDS(forecastSelection,"forecastSelectionFUN.RData")
-saveRDS(forecastMaking,"forecastMakingFUN.RData")
-
-
 
 
 
