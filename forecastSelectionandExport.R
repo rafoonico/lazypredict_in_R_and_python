@@ -1,11 +1,11 @@
 
-# 1) Função ---------------------------------------------------------------
+# 1) FunÃ§Ã£o ---------------------------------------------------------------
 
 forecastSelection <- function(st, start_date,
-                              tt_s_r=0.75,freq='month'){ #st: série temporal
-                                                         #start_date: data de início da série. Se os valores são mensais, por exemplo, pode ser uma data fictícia tipo o primeiro dia.
+                              tt_s_r=0.75,freq='month'){ #st: sÃ©rie temporal
+                                                         #start_date: data de inÃ­cio da sÃ©rie. Se os valores sÃ£o mensais, por exemplo, pode ser uma data fictÃ­cia tipo o primeiro dia.
                                                          #tt_s_r: train and test split ratio
-                                                         #freq: frequência da série. Por hora, só week e month
+                                                         #freq: frequÃªncia da sÃ©rie. Por hora, sÃ³ week e month
   ifelse(require(prophet),library(prophet),{install.packages('prophet');library(prophet)})
   ifelse(require(forecast),library(forecast),{install.packages('forecast');library(forecast)})
   ifelse(require(tscount),library(tscount),{install.packages('tscount');library(tscount)})
@@ -15,6 +15,10 @@ forecastSelection <- function(st, start_date,
   ifelse(require(segmented),library(segmented),{install.packages('segmented');library(segmented)})
   ifelse(require(lubridate),library(lubridate),{install.packages('lubridate');library(lubridate)})
 
+  if(st|>length()<20){ # 20 por conta do parametro "h" do piecewise regression
+    return("FALSE")
+  }
+  
   st0=st
   st=st[1:ceiling(length(st0)*tt_s_r)]
   st_test=st0[(ceiling(length(st0)*tt_s_r)+1):length(st0)]
@@ -26,7 +30,7 @@ forecastSelection <- function(st, start_date,
 # 1.1) Modelos ------------------------------------------------------------
 
   
-  # m0: regressão linear simples
+  # m0: regressÃ£o linear simples
   m0 <- lm(st~Periodo,data={dados_para_lm=data.frame("st"=st,"Periodo"=Periodo)})
   
   # m1: autoarima
@@ -56,7 +60,7 @@ forecastSelection <- function(st, start_date,
   # m5: tscount NBinom
   m5 <- tsglm(st, distr = "nbinom")
   
-  # m6: Suavização exponencial (Holt-Winters)
+  # m6: SuavizaÃ§Ã£o exponencial (Holt-Winters)
   if(freq=="month"|freq=="week"){
     m6 <- HoltWinters(ts(data = st,
                          frequency = ifelse(freq=="month",12,365.25/7),
@@ -75,7 +79,7 @@ forecastSelection <- function(st, start_date,
 
 # 1.2) Testes -------------------------------------------------------------
   
-  # m0: regressão linear simples
+  # m0: regressÃ£o linear simples
   result_m0 <- predict(m0,newdata={dados_para_lm=data.frame("st"=st_test,"Periodo"=Periodo_test)})|>as.numeric()
   
   # m1: autoarima
@@ -98,7 +102,7 @@ forecastSelection <- function(st, start_date,
   # m5: tscount NBinom
   result_m5 <-   as.vector(predict(m5,n.ahead=length(st_test))$pred)
   
-  # m6: Suavização exponencial (Holt-Winters)
+  # m6: SuavizaÃ§Ã£o exponencial (Holt-Winters)
   result_m6 <- predict(m6, n.ahead=length(st_test))|>as.numeric()
   
   # m7: Strucchange
@@ -129,11 +133,11 @@ forecastSelection <- function(st, start_date,
 }
 
 forecastMaking <- function(st, start_date,periods_ahead,
-                           result=FALSE,freq='month'){#st: série temporal
-                                                #start_date: data de início da série. Se os valores são mensais, por exemplo, pode ser uma data fictícia tipo o primeiro dia.
-                                                #periods_ahead: número de períodos a frente
-                                                #result: aqui coloca o nome do modelo, saída da função 'forecastSelection'
-                                                #freq: frequência da série. Por hora, só week e month
+                           result=FALSE,freq='month'){#st: sÃ©rie temporal
+                                                #start_date: data de inÃ­cio da sÃ©rie. Se os valores sÃ£o mensais, por exemplo, pode ser uma data fictÃ­cia tipo o primeiro dia.
+                                                #periods_ahead: nÃºmero de perÃ­odos a frente
+                                                #result: aqui coloca o nome do modelo, saÃ­da da funÃ§Ã£o 'forecastSelection'
+                                                #freq: frequÃªncia da sÃ©rie. Por hora, sÃ³ week e month
   ifelse(require(prophet),library(prophet),{install.packages('prophet');library(prophet)})
   ifelse(require(forecast),library(forecast),{install.packages('forecast');library(forecast)})
   ifelse(require(tscount),library(tscount),{install.packages('tscount');library(tscount)})
@@ -218,7 +222,7 @@ forecastMaking <- function(st, start_date,periods_ahead,
     return(predicao)
     
   }else{
-    # só a média
+    # sÃ³ a mÃ©dia
     return(rep(mean(st),times=periods_ahead))
     
   }
@@ -231,6 +235,9 @@ forecastSelection(rpois(100,10),as.Date("1994-11-08"))
 
 forecastSelection(rpois(100,15),as.Date("1994-11-08"))
 
+forecastSelection(rpois(10,15),as.Date("1994-11-08"))
+
+
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"SLR")
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"Autoarima")
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"fbProphet Flat")
@@ -240,10 +247,12 @@ forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"tsCount NBinomial")
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"ETS HoltWinters")
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6,"Piecewise")
 forecastMaking(rpois(100,10),as.Date("1994-11-08"),6)
+forecastMaking(rpois(10,10),as.Date("1994-11-08"),6,forecastSelection(rpois(10,15),as.Date("1994-11-08")))
 
-# 3) Salvando as funções criadas ------------------------------------------
 
+# 3) Salvando as funÃ§Ãµes criadas ------------------------------------------
 
+setwd("//vcn.ds.volvo.net/parts-cta/PartsPROJ02/004998/DIP/19. Machine Learning/Dealer Spot Demand")
 saveRDS(forecastSelection,"forecastSelectionFUN.RData")
 saveRDS(forecastMaking,"forecastMakingFUN.RData")
 
