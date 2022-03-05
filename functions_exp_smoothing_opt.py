@@ -196,7 +196,8 @@ def ultimate_exp_smooth_opt(d, extra_periods=6,kpi="MAE",alpha_range=np.arange(0
                                                          beta_range=np.arange(0.05,0.41,0.01),
                                                          phi_range=np.arange(0,1.1,0.1),
                                                          gamma_range_mult=np.arange(0.05,0.31,0.01),
-                                                         gamma_range_add=np.arange(0.05,0.31,0.01)):
+                                                         gamma_range_add=np.arange(0.05,0.31,0.01),
+                                                         slen=6):
     params=[] # Aqui entra todas as combinações de parâmetros
     KPIs=[] # Aqui entra os resultados de cada modelo
     dfs=[] # Aqui entra todos os dataframes retornados pelos modelos ajustados
@@ -245,7 +246,7 @@ def ultimate_exp_smooth_opt(d, extra_periods=6,kpi="MAE",alpha_range=np.arange(0
                     KPIs.append(RMSE)
                 
                 for gamma in gamma_range_mult:
-                    df=triple_exp_smooth_mul(d,extra_periods=extra_periods,alpha=alpha,beta=beta,phi=phi,gamma=gamma)
+                    df=triple_exp_smooth_mul(d,extra_periods=extra_periods,alpha=alpha,beta=beta,phi=phi,gamma=gamma,slen=slen)
                     params.append(f'Triple Exp Smoothing Multiplicative, alpha: {alpha}, beta: {beta}, phi: {phi} and gamma: {gamma}.')
                     dfs.append(df)
                     if kpi=="MAE":    
@@ -256,7 +257,7 @@ def ultimate_exp_smooth_opt(d, extra_periods=6,kpi="MAE",alpha_range=np.arange(0
                         KPIs.append(RMSE)
 
                 for gamma in gamma_range_add:
-                    df=triple_exp_smooth_add(d,extra_periods=extra_periods,alpha=alpha,beta=beta,phi=phi,gamma=gamma)
+                    df=triple_exp_smooth_add(d,extra_periods=extra_periods,alpha=alpha,beta=beta,phi=phi,gamma=gamma,slen)
                     params.append(f'Triple Exp Smoothing Additive, alpha: {alpha}, beta: {beta}, phi: {phi} and gamma: {gamma}.')
                     dfs.append(df)
                     if kpi=="MAE":    
